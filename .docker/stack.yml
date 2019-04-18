@@ -1,0 +1,29 @@
+version: '3.7'
+
+networks:
+  network:
+    driver: overlay
+  proxy_network:
+    external: true
+
+services:
+  api:
+    image: felipecwb/site:latest
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-stg}
+    networks:
+      - network
+      - proxy_network
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      labels:
+        traefik.enable: 'true'
+        traefik.port: 80
+        traefik.frontend.rule: "Host:www.${DOMAIN},${DOMAIN}"
+        traefik.frontend.entryPoints: 'http,https'
